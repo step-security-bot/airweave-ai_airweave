@@ -103,6 +103,16 @@ def can_manage_members(role: str) -> bool:
     return role in ("owner", "admin")
 
 
+def can_manage_api_keys(role: str) -> bool:
+    """Return whether a user with this role may create/read/rotate/delete API keys."""
+    return role in ("owner", "admin")
+
+
+def can_manage_auth_providers(role: str) -> bool:
+    """Return whether a user with this role may create/modify/delete auth provider connections."""
+    return role in ("owner", "admin")
+
+
 # ---------------------------------------------------------------------------
 # Invitation formatting
 # ---------------------------------------------------------------------------

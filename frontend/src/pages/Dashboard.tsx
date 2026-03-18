@@ -14,6 +14,7 @@ import { getStoredErrorDetails } from "@/lib/error-utils";
 import { useCollectionCreationStore } from "@/stores/collectionCreationStore";
 import { useCollectionsStore, useSourcesStore } from "@/lib/stores";
 import { useUsageStore } from "@/lib/stores/usage";
+import { useOrganizationStore } from "@/lib/stores/organizations";
 import { cn } from "@/lib/utils";
 import {
   Tooltip,
@@ -38,6 +39,7 @@ const Dashboard = () => {
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const { resolvedTheme } = useTheme();
+  const { currentOrganization } = useOrganizationStore();
 
   // Use collections store
   const {
@@ -221,7 +223,7 @@ const Dashboard = () => {
         {/* Right Column */}
         <div className="md:col-span-1 space-y-6">
           {/* API Key Card */}
-          <ApiKeyCard />
+          <ApiKeyCard currentOrganization={currentOrganization} />
 
           {/* Example Projects Section */}
           <div className="space-y-4">

@@ -1,9 +1,15 @@
 import { useEffect, useState, useMemo } from "react";
 import { AuthProviderButton } from "@/components/dashboard";
 import { useAuthProvidersStore } from "@/lib/stores/authProviders";
+import { useOrganizationStore } from "@/lib/stores/organizations";
 import { AuthProviderDialog } from "./AuthProviderDialog";
+import { toast } from "sonner";
 
 export const AuthProviderTable = () => {
+    const { currentOrganization } = useOrganizationStore();
+    const canManage = currentOrganization
+        ? ['owner', 'admin'].includes(currentOrganization.role)
+        : false;
     // Use auth providers store
     const {
         authProviders,
@@ -74,6 +80,9 @@ export const AuthProviderTable = () => {
             setSelectedConnection(connection);
             setDialogMode('auth-provider-detail');
             setDialogOpen(true);
+        } else if (!canManage) {
+            toast.info("Only admins can configure auth providers");
+            return;
         } else {
             console.log('➕ [AuthProviderTable] No connection found, opening configure dialog');
             // Auth provider not connected, show configure dialog

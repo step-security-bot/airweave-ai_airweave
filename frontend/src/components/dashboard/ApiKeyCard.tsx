@@ -6,7 +6,19 @@ import { Check, Copy, Key, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { useAPIKeysStore } from "@/lib/stores/apiKeys";
 
-export const ApiKeyCard = () => {
+interface Organization {
+  id: string;
+  role: string;
+}
+
+interface ApiKeyCardProps {
+  currentOrganization: Organization | null;
+}
+
+export const ApiKeyCard = ({ currentOrganization }: ApiKeyCardProps) => {
+  const canManage = currentOrganization
+    ? ['owner', 'admin'].includes(currentOrganization.role)
+    : false;
   const [copySuccess, setCopySuccess] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
 
@@ -18,8 +30,10 @@ export const ApiKeyCard = () => {
   } = useAPIKeysStore();
 
   useEffect(() => {
-    fetchAPIKeys();
-  }, [fetchAPIKeys]);
+    if (canManage) {
+      fetchAPIKeys();
+    }
+  }, [canManage, fetchAPIKeys]);
 
   const handleCopyApiKey = (key: string) => {
     if (key) {
@@ -62,7 +76,13 @@ export const ApiKeyCard = () => {
         </div>
         <p className="text-xs text-muted-foreground mb-4">Store your API keys securely</p>
 
-        {isLoading ? (
+        {!canManage ? (
+          <div className="text-center py-2">
+            <p className="text-xs text-muted-foreground">
+              Only admins and owners can manage API keys
+            </p>
+          </div>
+        ) : isLoading ? (
           <div className="flex items-center justify-center py-4">
             <div className="text-xs text-muted-foreground">Loading...</div>
           </div>

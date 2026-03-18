@@ -11,6 +11,7 @@ from airweave.api.context import ApiContext
 from airweave.api.router import TrailingSlashRouter
 from airweave.core import credentials
 from airweave.core.datetime_utils import utc_now_naive
+from airweave.domains.organizations import logic
 
 router = TrailingSlashRouter()
 
@@ -20,7 +21,7 @@ async def create_api_key(
     *,
     db: AsyncSession = Depends(deps.get_db),
     api_key_in: schemas.APIKeyCreate = Body(default_factory=lambda: schemas.APIKeyCreate()),
-    ctx: ApiContext = Depends(deps.get_context),
+    ctx: ApiContext = deps.require_org_role(logic.can_manage_api_keys, block_api_key_auth=True),
 ) -> schemas.APIKey:
     """Create a new API key for the current user.
 
@@ -73,7 +74,7 @@ async def read_api_key(
     *,
     db: AsyncSession = Depends(deps.get_db),
     id: UUID,
-    ctx: ApiContext = Depends(deps.get_context),
+    ctx: ApiContext = deps.require_org_role(logic.can_manage_api_keys, block_api_key_auth=True),
 ) -> schemas.APIKey:
     """Retrieve an API key by ID.
 
@@ -117,7 +118,7 @@ async def read_api_keys(
     db: AsyncSession = Depends(deps.get_db),
     skip: int = 0,
     limit: int = 100,
-    ctx: ApiContext = Depends(deps.get_context),
+    ctx: ApiContext = deps.require_org_role(logic.can_manage_api_keys, block_api_key_auth=True),
 ) -> list[schemas.APIKey]:
     """Retrieve all API keys for the current user.
 
@@ -163,7 +164,7 @@ async def rotate_api_key(
     *,
     db: AsyncSession = Depends(deps.get_db),
     id: UUID,
-    ctx: ApiContext = Depends(deps.get_context),
+    ctx: ApiContext = deps.require_org_role(logic.can_manage_api_keys, block_api_key_auth=True),
 ) -> schemas.APIKey:
     """Rotate an API key by creating a new one.
 
@@ -220,7 +221,7 @@ async def delete_api_key(
     *,
     db: AsyncSession = Depends(deps.get_db),
     id: UUID,
-    ctx: ApiContext = Depends(deps.get_context),
+    ctx: ApiContext = deps.require_org_role(logic.can_manage_api_keys, block_api_key_auth=True),
 ) -> schemas.APIKey:
     """Delete an API key.
 

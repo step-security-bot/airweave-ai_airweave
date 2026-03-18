@@ -14,6 +14,15 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
+interface Organization {
+  id: string;
+  role: string;
+}
+
+interface APIKeysSettingsProps {
+  currentOrganization: Organization;
+}
+
 const EXPIRATION_PRESETS = [
   { days: 30, label: "30 days" },
   { days: 60, label: "60 days" },
@@ -22,7 +31,8 @@ const EXPIRATION_PRESETS = [
   { days: 365, label: "365 days" },
 ];
 
-export function APIKeysSettings() {
+export function APIKeysSettings({ currentOrganization }: APIKeysSettingsProps) {
+  const canManage = ['owner', 'admin'].includes(currentOrganization.role);
   const {
     apiKeys,
     isLoading,
@@ -126,6 +136,20 @@ export function APIKeysSettings() {
     if (daysRemaining <= 7) return "text-amber-500";
     return "text-slate-500 dark:text-slate-400";
   };
+
+  if (!canManage) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 text-center">
+        <div className="rounded-full bg-slate-100 dark:bg-slate-800 p-4 mb-4">
+          <Key className="h-6 w-6 text-slate-400" />
+        </div>
+        <p className="text-sm font-medium mb-1">API key management</p>
+        <p className="text-sm text-slate-500 dark:text-slate-400">
+          Only admins and owners can manage API keys
+        </p>
+      </div>
+    );
+  }
 
   if (isLoading && apiKeys.length === 0) {
     return (
