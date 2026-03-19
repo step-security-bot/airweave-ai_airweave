@@ -279,8 +279,12 @@ const makeRequest = async <T>(
         // If still 403 after retry, refresh org context so the UI
         // reflects revoked permissions (buttons disable, sections hide).
         if (retryResponse.status === 403) {
-          const { initializeOrganizations } = useOrganizationStore.getState();
-          await initializeOrganizations();
+          try {
+            const { initializeOrganizations } = useOrganizationStore.getState();
+            await initializeOrganizations();
+          } catch (e) {
+            console.error('Failed to refresh organization context:', e);
+          }
         }
 
         response = retryResponse;

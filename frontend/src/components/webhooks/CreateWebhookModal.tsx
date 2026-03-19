@@ -160,6 +160,7 @@ export function CreateWebhookModal({
   useEffect(() => {
     if (open && !canManage) {
       toast.info("Only admins can manage webhooks");
+      resetForm();
       onOpenChange(false);
     }
   }, [open, canManage, onOpenChange]);
