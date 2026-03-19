@@ -2,7 +2,7 @@
 
 from uuid import UUID
 
-from fastapi import Body, Depends
+from fastapi import Body, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from airweave import crud, schemas
@@ -93,6 +93,14 @@ async def read_api_key(
         HTTPException: If the API key is not found.
     """
     api_key = await crud.api_key.get(db=db, id=id, ctx=ctx)
+    if api_key is None:
+        raise HTTPException(status_code=404, detail="Not found")
+
+    # Audit log: API key read (flows to Azure LAW)
+    audit_logger = ctx.logger.with_context(event_type="api_key_read")
+    audit_logger.info(
+        f"API key read: {api_key.id} by {ctx.tracking_email} for org {ctx.organization.id}"
+    )
     # Decrypt the key for the response
     decrypted_data = credentials.decrypt(api_key.encrypted_key)
     decrypted_key = decrypted_data["key"]
@@ -134,6 +142,12 @@ async def read_api_keys(
         List[schemas.APIKey]: A list of API keys with decrypted keys.
     """
     api_keys = await crud.api_key.get_multi(db=db, skip=skip, limit=limit, ctx=ctx)
+    # Audit log: API keys listed (flows to Azure LAW)
+    audit_logger = ctx.logger.with_context(event_type="api_keys_listed")
+    audit_logger.info(
+        f"API keys listed ({len(api_keys)} keys) by {ctx.tracking_email} "
+        f"for org {ctx.organization.id}"
+    )
 
     result = []
     for api_key in api_keys:
@@ -189,6 +203,8 @@ async def rotate_api_key(
     """
     # Verify old key exists and user has access
     old_key = await crud.api_key.get(db=db, id=id, ctx=ctx)
+    if old_key is None:
+        raise HTTPException(status_code=404, detail="Not found")
     old_key_schema = schemas.APIKey.model_validate(old_key, from_attributes=True)
 
     # Create new key with default 90-day expiration
@@ -241,6 +257,8 @@ async def delete_api_key(
 
     """
     api_key = await crud.api_key.get(db=db, id=id, ctx=ctx)
+    if api_key is None:
+        raise HTTPException(status_code=404, detail="Not found")
 
     # Decrypt the key for the response
     decrypted_data = credentials.decrypt(api_key.encrypted_key)

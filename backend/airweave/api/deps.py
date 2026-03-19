@@ -56,6 +56,9 @@ def require_org_role(
     """
 
     async def _enforce(ctx: ApiContext = Depends(get_context)) -> ApiContext:
+        # Checked before system bypass — these auth methods are mutually
+        # exclusive (API_KEY vs SYSTEM/INTERNAL_SYSTEM), so ordering is
+        # safe.  Keeping this first gives a precise error message.
         if block_api_key_auth and ctx.is_api_key_auth:
             raise HTTPException(
                 status_code=403,
