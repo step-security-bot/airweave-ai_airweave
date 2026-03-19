@@ -5,20 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Check, Copy, Key, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { useAPIKeysStore } from "@/lib/stores/apiKeys";
+import { useOrganizationContext } from "@/hooks/use-organization-context";
 
-interface Organization {
-  id: string;
-  role: string;
-}
-
-interface ApiKeyCardProps {
-  currentOrganization: Organization | null;
-}
-
-export const ApiKeyCard = ({ currentOrganization }: ApiKeyCardProps) => {
-  const canManage = currentOrganization
-    ? ['owner', 'admin'].includes(currentOrganization.role)
-    : false;
+export const ApiKeyCard = () => {
+  const { canManageOrganization } = useOrganizationContext();
+  const canManage = canManageOrganization();
   const [copySuccess, setCopySuccess] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
 

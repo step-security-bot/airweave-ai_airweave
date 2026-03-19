@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { apiClient } from '@/lib/api';
 import { cn } from '@/lib/utils';
 import { useTheme } from '@/lib/theme-provider';
+import { useOrganizationContext } from '@/hooks/use-organization-context';
 import {
     Tooltip,
     TooltipContent,
@@ -31,6 +32,8 @@ export const SourceRateLimits = () => {
     const [savingRows, setSavingRows] = useState<Set<string>>(new Set());
     const { resolvedTheme } = useTheme();
     const isDark = resolvedTheme === 'dark';
+    const { canManageOrganization } = useOrganizationContext();
+    const canManage = canManageOrganization();
 
     // Separate state for Pipedream proxy
     const [pipedreamLimit, setPipedreamLimit] = useState<string>('1000');
@@ -212,6 +215,11 @@ export const SourceRateLimits = () => {
                     <p className="text-xs text-muted-foreground">
                         Configure rate limits to prevent exhausting API quotas across your organization
                     </p>
+                    {!canManage && (
+                        <p className="text-xs text-amber-600 dark:text-amber-400">
+                            Only admins and owners can manage rate limits.
+                        </p>
+                    )}
                 </div>
 
                 {/* Pipedream Proxy - Compact inline design */}
@@ -247,6 +255,7 @@ export const SourceRateLimits = () => {
                                     placeholder="1000"
                                     min="1"
                                     className="h-7 w-24 text-xs"
+                                    readOnly={!canManage}
                                 />
                                 <span className="text-[11px] text-muted-foreground">requests</span>
                                 <span className="text-xs text-muted-foreground">/</span>
@@ -258,12 +267,13 @@ export const SourceRateLimits = () => {
                                         <button
                                             onClick={handleSavePipedream}
                                             disabled={
+                                                !canManage ||
                                                 isSavingPipedream ||
                                                 (pipedreamLimit === originalPipedreamLimit && pipedreamWindow === originalPipedreamWindow)
                                             }
                                             className={cn(
                                                 "h-7 px-2.5 rounded-md flex items-center gap-1.5 text-xs font-medium transition-all duration-200",
-                                                isSavingPipedream || (pipedreamLimit === originalPipedreamLimit && pipedreamWindow === originalPipedreamWindow)
+                                                !canManage || isSavingPipedream || (pipedreamLimit === originalPipedreamLimit && pipedreamWindow === originalPipedreamWindow)
                                                     ? "opacity-40 cursor-not-allowed"
                                                     : isDark
                                                         ? "bg-primary/90 hover:bg-primary text-white"
@@ -290,7 +300,7 @@ export const SourceRateLimits = () => {
                                                     setOriginalPipedreamLimit('1000');
                                                     setOriginalPipedreamWindow('300');
                                                 }}
-                                                disabled={isSavingPipedream}
+                                                disabled={isSavingPipedream || !canManage}
                                                 className={cn(
                                                     "h-7 w-7 rounded-md flex items-center justify-center transition-all duration-200",
                                                     isDark
@@ -386,6 +396,7 @@ export const SourceRateLimits = () => {
                                                         className="h-7 w-20 text-xs"
                                                         min="1"
                                                         disabled={isSaving}
+                                                        readOnly={!canManage}
                                                     />
                                                     <span className="text-[11px] text-muted-foreground">req</span>
                                                 </div>
@@ -401,6 +412,7 @@ export const SourceRateLimits = () => {
                                                         className="h-7 w-16 text-xs"
                                                         min="1"
                                                         disabled={isSaving}
+                                                        readOnly={!canManage}
                                                     />
                                                     <span className="text-[11px] text-muted-foreground">sec</span>
                                                 </div>
@@ -409,10 +421,10 @@ export const SourceRateLimits = () => {
                                                         <TooltipTrigger asChild>
                                                             <button
                                                                 onClick={() => handleSaveRow(row.source_short_name)}
-                                                                disabled={isSaving || !isEditing || !hasChanges}
+                                                                disabled={!canManage || isSaving || !isEditing || !hasChanges}
                                                                 className={cn(
                                                                     "h-7 w-7 rounded-md flex items-center justify-center transition-all duration-200",
-                                                                    isSaving || !isEditing || !hasChanges
+                                                                    !canManage || isSaving || !isEditing || !hasChanges
                                                                         ? "opacity-40 cursor-not-allowed"
                                                                         : isDark
                                                                             ? "bg-primary/90 hover:bg-primary text-white"
@@ -432,10 +444,10 @@ export const SourceRateLimits = () => {
                                                         <TooltipTrigger asChild>
                                                             <button
                                                                 onClick={() => handleDeleteRow(row.source_short_name)}
-                                                                disabled={isSaving || !row.id}
+                                                                disabled={!canManage || isSaving || !row.id}
                                                                 className={cn(
                                                                     "h-7 w-7 rounded-md flex items-center justify-center transition-all duration-200",
-                                                                    isSaving || !row.id
+                                                                    !canManage || isSaving || !row.id
                                                                         ? "opacity-40 cursor-not-allowed"
                                                                         : isDark
                                                                             ? "hover:bg-red-500/10 text-red-400"

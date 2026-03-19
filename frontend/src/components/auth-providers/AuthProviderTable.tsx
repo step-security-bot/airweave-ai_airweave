@@ -1,15 +1,13 @@
 import { useEffect, useState, useMemo } from "react";
 import { AuthProviderButton } from "@/components/dashboard";
 import { useAuthProvidersStore } from "@/lib/stores/authProviders";
-import { useOrganizationStore } from "@/lib/stores/organizations";
+import { useOrganizationContext } from "@/hooks/use-organization-context";
 import { AuthProviderDialog } from "./AuthProviderDialog";
 import { toast } from "sonner";
 
 export const AuthProviderTable = () => {
-    const { currentOrganization } = useOrganizationStore();
-    const canManage = currentOrganization
-        ? ['owner', 'admin'].includes(currentOrganization.role)
-        : false;
+    const { canManageOrganization } = useOrganizationContext();
+    const canManage = canManageOrganization();
     // Use auth providers store
     const {
         authProviders,

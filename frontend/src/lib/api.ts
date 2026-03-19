@@ -274,7 +274,16 @@ const makeRequest = async <T>(
         console.log('Retrying request with fresh token');
         // Retry with new token
         fetchOptions.headers = headers;
-        response = await fetch(url.toString(), fetchOptions);
+        const retryResponse = await fetch(url.toString(), fetchOptions);
+
+        // If still 403 after retry, refresh org context so the UI
+        // reflects revoked permissions (buttons disable, sections hide).
+        if (retryResponse.status === 403) {
+          const { initializeOrganizations } = useOrganizationStore.getState();
+          await initializeOrganizations();
+        }
+
+        response = retryResponse;
       }
     }
 

@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { format, differenceInDays } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useAPIKeysStore, type APIKey } from "@/lib/stores/apiKeys";
+import { useOrganizationContext } from "@/hooks/use-organization-context";
 import {
   Dialog,
   DialogContent,
@@ -14,15 +15,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-interface Organization {
-  id: string;
-  role: string;
-}
-
-interface APIKeysSettingsProps {
-  currentOrganization: Organization;
-}
-
 const EXPIRATION_PRESETS = [
   { days: 30, label: "30 days" },
   { days: 60, label: "60 days" },
@@ -31,8 +23,9 @@ const EXPIRATION_PRESETS = [
   { days: 365, label: "365 days" },
 ];
 
-export function APIKeysSettings({ currentOrganization }: APIKeysSettingsProps) {
-  const canManage = ['owner', 'admin'].includes(currentOrganization.role);
+export function APIKeysSettings() {
+  const { canManageOrganization } = useOrganizationContext();
+  const canManage = canManageOrganization();
   const {
     apiKeys,
     isLoading,

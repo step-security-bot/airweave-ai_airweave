@@ -46,6 +46,7 @@ import {
   Shield
 } from 'lucide-react';
 import { apiClient } from '@/lib/api';
+import { useOrganizationContext } from '@/hooks/use-organization-context';
 import { toast } from 'sonner';
 import { format, differenceInDays, addMonths, startOfMonth } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -134,6 +135,8 @@ const plans = {
 
 export const BillingSettings = ({ organizationId }: BillingSettingsProps) => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const { canManageOrganization } = useOrganizationContext();
+  const canManage = canManageOrganization();
   const [subscription, setSubscription] = useState<SubscriptionInfo | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
@@ -537,7 +540,7 @@ export const BillingSettings = ({ organizationId }: BillingSettingsProps) => {
           {subscription.cancel_at_period_end && subscription.current_period_end && (
             <Button
               onClick={handleReactivateSubscription}
-              disabled={isReactivateLoading}
+              disabled={isReactivateLoading || !canManage}
               size="sm"
               className="bg-primary hover:bg-primary/90 text-white border-0"
             >
@@ -550,7 +553,7 @@ export const BillingSettings = ({ organizationId }: BillingSettingsProps) => {
             <Button
               onClick={handleManageBilling}
               variant="ghost"
-              disabled={isPortalLoading}
+              disabled={isPortalLoading || !canManage}
               size="sm"
               className="text-muted-foreground hover:text-foreground"
             >
@@ -566,6 +569,7 @@ export const BillingSettings = ({ organizationId }: BillingSettingsProps) => {
           {subscription.has_active_subscription && !subscription.cancel_at_period_end && (
             <Button
               onClick={() => setShowCancelDialog(true)}
+              disabled={!canManage}
               variant="ghost"
               size="sm"
               className="text-destructive hover:text-destructive hover:bg-destructive/10"
@@ -575,6 +579,12 @@ export const BillingSettings = ({ organizationId }: BillingSettingsProps) => {
           )}
         </div>
       </div>
+
+      {!canManage && (
+        <p className="text-sm text-muted-foreground">
+          Only admins and owners can manage billing.
+        </p>
+      )}
 
       {/* Yearly prepay indicator */}
       {subscription.has_yearly_prepay && subscription.yearly_prepay_expires_at && (
@@ -653,7 +663,7 @@ export const BillingSettings = ({ organizationId }: BillingSettingsProps) => {
               variant="ghost"
               size="sm"
               onClick={handleCancelPlanChange}
-              disabled={isCancelLoading}
+              disabled={isCancelLoading || !canManage}
               className="text-blue-700 hover:text-blue-800 hover:bg-blue-100 -mt-1"
             >
               Cancel change
@@ -806,7 +816,7 @@ export const BillingSettings = ({ organizationId }: BillingSettingsProps) => {
                   ) : isPeriodChange ? (
                     <Button
                       onClick={() => handleUpgrade(key as 'developer' | 'pro' | 'team')}
-                      disabled={isCheckoutLoading}
+                      disabled={isCheckoutLoading || !canManage}
                       variant="outline"
                       className="w-full h-9 text-xs mt-auto border-primary text-primary hover:border-primary/80 hover:bg-primary/10"
                     >
@@ -825,7 +835,7 @@ export const BillingSettings = ({ organizationId }: BillingSettingsProps) => {
                   ) : (
                     <Button
                       onClick={() => handleUpgrade(key as 'developer' | 'pro' | 'team')}
-                      disabled={isCheckoutLoading}
+                      disabled={isCheckoutLoading || !canManage}
                       variant="outline"
                       className={cn(
                         "w-full h-9 text-xs mt-auto",

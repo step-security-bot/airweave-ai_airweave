@@ -259,7 +259,7 @@ export const OrganizationSettingsUnified = () => {
             {/* API Keys Tab */}
             {activeTab === 'api-keys' && (
               <div>
-                <APIKeysSettings currentOrganization={currentOrganization} />
+                <APIKeysSettings />
               </div>
             )}
 
