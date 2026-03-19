@@ -113,6 +113,21 @@ def can_manage_auth_providers(role: str) -> bool:
     return role in ("owner", "admin")
 
 
+def can_manage_webhooks(role: str) -> bool:
+    """Return whether a user with this role may manage webhook subscriptions."""
+    return role in ("owner", "admin")
+
+
+def can_manage_billing(role: str) -> bool:
+    """Return whether a user with this role may manage billing and subscriptions."""
+    return role in ("owner", "admin")
+
+
+def can_manage_rate_limits(role: str) -> bool:
+    """Return whether a user with this role may configure source rate limits."""
+    return role in ("owner", "admin")
+
+
 # ---------------------------------------------------------------------------
 # Invitation formatting
 # ---------------------------------------------------------------------------

@@ -17,6 +17,7 @@ from airweave.analytics import business_events
 from airweave.api import deps
 from airweave.api.context import ApiContext
 from airweave.api.deps import Inject
+from airweave.domains.organizations import logic
 from airweave.core.protocols import WebhookServiceProtocol
 from airweave.domains.webhooks import WebhooksError
 from airweave.domains.webhooks.types import compute_health_status
@@ -231,7 +232,7 @@ matching events occur. Each request includes a signature header for verification
 )
 async def create_subscription(
     request: CreateSubscriptionRequest,
-    ctx: ApiContext = Depends(deps.get_context),
+    ctx: ApiContext = deps.require_org_role(logic.can_manage_webhooks),
     webhook_service: WebhookServiceProtocol = Inject(WebhookServiceProtocol),
 ) -> WebhookSubscription:
     """Create a new webhook subscription."""
@@ -282,7 +283,7 @@ async def delete_subscription(
         description="The unique identifier of the subscription to delete (UUID).",
         json_schema_extra={"example": "550e8400-e29b-41d4-a716-446655440000"},
     ),
-    ctx: ApiContext = Depends(deps.get_context),
+    ctx: ApiContext = deps.require_org_role(logic.can_manage_webhooks),
     webhook_service: WebhookServiceProtocol = Inject(WebhookServiceProtocol),
 ) -> WebhookSubscription:
     """Delete a webhook subscription permanently."""
@@ -332,7 +333,7 @@ async def patch_subscription(
         json_schema_extra={"example": "550e8400-e29b-41d4-a716-446655440000"},
     ),
     request: PatchSubscriptionRequest = ...,
-    ctx: ApiContext = Depends(deps.get_context),
+    ctx: ApiContext = deps.require_org_role(logic.can_manage_webhooks),
     webhook_service: WebhookServiceProtocol = Inject(WebhookServiceProtocol),
 ) -> WebhookSubscription:
     """Update an existing webhook subscription."""
@@ -392,7 +393,7 @@ async def recover_failed_messages(
         json_schema_extra={"example": "550e8400-e29b-41d4-a716-446655440000"},
     ),
     request: RecoverMessagesRequest = ...,
-    ctx: ApiContext = Depends(deps.get_context),
+    ctx: ApiContext = deps.require_org_role(logic.can_manage_webhooks),
     webhook_service: WebhookServiceProtocol = Inject(WebhookServiceProtocol),
 ) -> RecoveryTask:
     """Retry failed message deliveries for a subscription."""
