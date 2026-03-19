@@ -5,7 +5,10 @@ import pytest
 from airweave.domains.organizations.logic import (
     can_manage_api_keys,
     can_manage_auth_providers,
+    can_manage_billing,
     can_manage_members,
+    can_manage_rate_limits,
+    can_manage_webhooks,
 )
 
 
@@ -30,3 +33,12 @@ class TestPermissionPredicates:
 
     def test_can_manage_members(self, role: str, expected: bool) -> None:
         assert can_manage_members(role) is expected
+
+    def test_can_manage_webhooks(self, role: str, expected: bool) -> None:
+        assert can_manage_webhooks(role) is expected
+
+    def test_can_manage_billing(self, role: str, expected: bool) -> None:
+        assert can_manage_billing(role) is expected
+
+    def test_can_manage_rate_limits(self, role: str, expected: bool) -> None:
+        assert can_manage_rate_limits(role) is expected
