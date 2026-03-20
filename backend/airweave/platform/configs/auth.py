@@ -968,6 +968,53 @@ class PipedreamAuthConfig(AuthConfig):
     )
 
 
+class CustomAuthConfig(AuthConfig):
+    """Custom Auth Provider authentication credentials schema.
+
+    Stores endpoint URL and authentication details for a customer-hosted
+    token endpoint that Airweave calls to fetch fresh access tokens.
+    """
+
+    endpoint_url: str = Field(
+        title="Endpoint URL",
+        description="HTTP endpoint URL that returns access tokens for sources.",
+    )
+    endpoint_auth_method: str = Field(
+        default="bearer",
+        title="Authentication Method",
+        description='How to authenticate to the endpoint: "none", "bearer", or "api_key_header".',
+    )
+    api_key_header_name: str = Field(
+        default="X-API-Key",
+        title="API Key Header Name",
+        description="Header name when using api_key_header authentication method.",
+    )
+    auth_value: str = Field(
+        default="",
+        title="Authentication Value",
+        description="Bearer token or API key value for authenticating to the endpoint.",
+    )
+
+    @field_validator("endpoint_url")
+    @classmethod
+    def validate_endpoint_url(cls, v: str) -> str:
+        """Validate the endpoint URL for SSRF safety."""
+        if not v or not v.strip():
+            raise ValueError("endpoint_url is required")
+        v = v.strip()
+        validate_url(v)
+        return v
+
+    @field_validator("endpoint_auth_method")
+    @classmethod
+    def validate_auth_method(cls, v: str) -> str:
+        """Validate the authentication method."""
+        allowed = {"none", "bearer", "api_key_header"}
+        if v not in allowed:
+            raise ValueError(f"endpoint_auth_method must be one of {allowed}")
+        return v
+
+
 class ZohoCRMAuthConfig(OAuth2WithRefreshAuthConfig):
     """Zoho CRM authentication credentials schema."""
 
