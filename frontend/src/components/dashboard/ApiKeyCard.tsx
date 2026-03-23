@@ -2,12 +2,11 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Check, Copy, Key, Plus } from "lucide-react";
+import { Key, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { useAPIKeysStore } from "@/lib/stores/apiKeys";
 
 export const ApiKeyCard = () => {
-  const [copySuccess, setCopySuccess] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
 
   const {
@@ -20,15 +19,6 @@ export const ApiKeyCard = () => {
   useEffect(() => {
     fetchAPIKeys();
   }, [fetchAPIKeys]);
-
-  const handleCopyApiKey = (key: string) => {
-    if (key) {
-      navigator.clipboard.writeText(key);
-      setCopySuccess(true);
-      toast.success("API key copied to clipboard");
-      setTimeout(() => setCopySuccess(false), 2000);
-    }
-  };
 
   const handleCreateAPIKey = async () => {
     setIsCreating(true);
@@ -43,11 +33,9 @@ export const ApiKeyCard = () => {
     }
   };
 
-  const maskApiKey = (key: string) => {
-    if (!key) return "";
-    const firstFour = key.substring(0, 4);
-    const masked = Array(key.length - 4).fill("*").join("");
-    return `${firstFour}${masked}`;
+  const displayPrefix = (prefix: string | null) => {
+    if (!prefix) return "????????" + "****".repeat(6);
+    return prefix + "****".repeat(6);
   };
 
   // Get the most recent API key
@@ -70,21 +58,10 @@ export const ApiKeyCard = () => {
           <>
             <div className="flex items-center">
               <Input
-                value={maskApiKey(latestApiKey.decrypted_key)}
+                value={displayPrefix(latestApiKey.key_prefix)}
                 className="text-xs font-mono h-9 bg-background border-border"
                 readOnly
               />
-              <Button
-                variant="ghost"
-                size="icon"
-                className="ml-1 h-9 w-9 relative"
-                onClick={() => handleCopyApiKey(latestApiKey.decrypted_key)}
-              >
-                <div className="relative">
-                  <Copy className={`h-3.5 w-3.5 transition-all duration-200 ${copySuccess ? 'opacity-0 scale-75' : 'opacity-100 scale-100'}`} />
-                  <Check className={`h-3.5 w-3.5 absolute inset-0 transition-all duration-200 ${copySuccess ? 'opacity-100 scale-100' : 'opacity-0 scale-75'}`} />
-                </div>
-              </Button>
             </div>
             <div className="mt-2 text-right">
               <Link
