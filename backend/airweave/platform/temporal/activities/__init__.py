@@ -10,6 +10,11 @@ For workflow compatibility, we also export the activity method references.
 These are used by workflows when calling execute_activity() with a function reference.
 """
 
+from airweave.platform.temporal.activities.api_key_cleanup import (
+    CleanupRevokedKeysActivity,
+    ExpirePastDueKeysActivity,
+    PruneUsageLogActivity,
+)
 from airweave.platform.temporal.activities.api_key_notifications import (
     CheckAndNotifyExpiringKeysActivity,
 )
@@ -42,6 +47,9 @@ cleanup_stuck_sync_jobs_activity = CleanupStuckSyncJobsActivity.run
 self_destruct_orphaned_sync_activity = SelfDestructOrphanedSyncActivity.run
 cleanup_sync_data_activity = CleanupSyncDataActivity.run
 check_and_notify_expiring_keys_activity = CheckAndNotifyExpiringKeysActivity.run
+cleanup_revoked_keys_activity = CleanupRevokedKeysActivity.run
+expire_past_due_keys_activity = ExpirePastDueKeysActivity.run
+prune_usage_log_activity = PruneUsageLogActivity.run
 
 __all__ = [
     # Activity classes (for worker.py instantiation)
@@ -52,6 +60,9 @@ __all__ = [
     "SelfDestructOrphanedSyncActivity",
     "CleanupSyncDataActivity",
     "CheckAndNotifyExpiringKeysActivity",
+    "CleanupRevokedKeysActivity",
+    "ExpirePastDueKeysActivity",
+    "PruneUsageLogActivity",
     # Activity method references (for workflow imports)
     "run_sync_activity",
     "mark_sync_job_cancelled_activity",
@@ -60,4 +71,7 @@ __all__ = [
     "self_destruct_orphaned_sync_activity",
     "cleanup_sync_data_activity",
     "check_and_notify_expiring_keys_activity",
+    "cleanup_revoked_keys_activity",
+    "expire_past_due_keys_activity",
+    "prune_usage_log_activity",
 ]
