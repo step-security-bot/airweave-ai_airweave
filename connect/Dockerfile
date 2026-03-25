@@ -1,4 +1,4 @@
-FROM node:22-slim AS builder
+FROM node:22-slim@sha256:80fdb3f57c815e1b638d221f30a826823467c4a56c8f6a8d7aa091cd9b1675ea AS builder
 WORKDIR /app/connect
 
 # Copy connect app files
@@ -16,7 +16,7 @@ COPY frontend/src/components/icons/apps/ /app/frontend/src/components/icons/apps
 RUN NODE_OPTIONS="--max-old-space-size=4096" npm run build
 
 # Runtime stage
-FROM node:22-alpine
+FROM node:22-alpine@sha256:8094c002d08262dba12645a3b4a15cd6cd627d30bc782f53229a2ec13ee22a00
 WORKDIR /app
 
 # Install wget for healthcheck

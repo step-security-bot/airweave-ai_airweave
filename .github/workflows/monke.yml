@@ -13,6 +13,9 @@ concurrency:
   group: monke-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   # Job 1: Build images once and determine connectors
   build-and-determine:
@@ -29,6 +32,11 @@ jobs:
       connector-count: ${{ steps.set-matrix.outputs.connector-count }}
       image-tag: ${{ steps.set-tag.outputs.tag }}
     steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@fa2e9d605c4eeb9fcad4c99c224cee0c6c7f3594 # v2.16.0
+        with:
+          egress-policy: audit
+
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0 # Need full history for git diff
@@ -138,6 +146,11 @@ jobs:
       TOGETHER_API_KEY: ${{ secrets.TOGETHER_API_KEY }}
 
     steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@fa2e9d605c4eeb9fcad4c99c224cee0c6c7f3594 # v2.16.0
+        with:
+          egress-policy: audit
+
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0 # Fetch all history for change detection

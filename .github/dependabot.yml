@@ -145,3 +145,58 @@ updates:
       - "deps:actions"
       - "area:infra"
     open-pull-requests-limit: 5
+
+  - package-ecosystem: docker
+    directory: /backend/airweave/platform/temporal
+    schedule:
+      interval: daily
+
+  - package-ecosystem: pip
+    directory: /backend/tests/e2e
+    schedule:
+      interval: daily
+
+  - package-ecosystem: docker
+    directory: /connect
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /connect
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /connect/packages/js
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /connect/packages/react
+    schedule:
+      interval: daily
+
+  - package-ecosystem: pip
+    directory: /examples/webhook-demo
+    schedule:
+      interval: daily
+
+  - package-ecosystem: docker
+    directory: /monke
+    schedule:
+      interval: daily
+
+  - package-ecosystem: docker
+    directory: /monke/backend
+    schedule:
+      interval: daily
+
+  - package-ecosystem: docker
+    directory: /monke/frontend
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /monke/frontend
+    schedule:
+      interval: daily
