@@ -13,6 +13,7 @@ from airweave.api.router import TrailingSlashRouter
 from airweave.core import credentials
 from airweave.core.datetime_utils import utc_now_naive
 from airweave.core.protocols.cache import ContextCache
+from airweave.db.unit_of_work import UnitOfWork
 
 router = TrailingSlashRouter()
 
@@ -159,19 +160,31 @@ async def rotate_api_key(
     """
     old_key = await crud.api_key.get(db=db, id=id, ctx=ctx)
 
-    # Inherit the original lifetime (created_at → expiration_date)
+    # Capture attributes before create() expires the ORM instance
+    old_key_id = old_key.id
+    old_key_encrypted = old_key.encrypted_key
+    old_key_description = old_key.description
     original_days = (old_key.expiration_date - old_key.created_at).days
+
     new_key_create = schemas.APIKeyCreate(
         expiration_days=max(1, min(original_days, 180)),
+        description=old_key_description,
     )
 
-    new_key_obj = await crud.api_key.create(db=db, obj_in=new_key_create, ctx=ctx)
+    async with UnitOfWork(db) as uow:
+        new_key_obj = await crud.api_key.create(
+            db=db, obj_in=new_key_create, ctx=ctx, uow=uow,
+        )
+        await crud.api_key.revoke(
+            db=db, api_key_id=old_key_id, uow=uow,
+        )
 
-    await crud.api_key.revoke(db=db, api_key_id=old_key.id)
+    # UoW commit expires ORM instances — refresh before access
+    await db.refresh(new_key_obj)
 
     # Invalidate old key's cache entry
     try:
-        old_decrypted = credentials.decrypt(old_key.encrypted_key)
+        old_decrypted = credentials.decrypt(old_key_encrypted)
         old_plaintext = old_decrypted["key"]
         await cache.invalidate_api_key(old_plaintext)
     except Exception:
@@ -185,7 +198,7 @@ async def rotate_api_key(
 
     audit_logger = ctx.logger.with_context(event_type="api_key_rotated")
     audit_logger.info(
-        f"API key rotated: old={old_key.id}, new={new_key_obj.id} "
+        f"API key rotated: old={old_key_id}, new={new_key_obj.id} "
         f"by {new_key_schema.created_by_email} for org {ctx.organization.id}, "
         f"new key expires {new_key_schema.expiration_date.isoformat()}"
     )
@@ -224,11 +237,15 @@ async def revoke_api_key(
     """
     api_key = await crud.api_key.get(db=db, id=id, ctx=ctx)
 
-    revoked = await crud.api_key.revoke(db=db, api_key_id=api_key.id)
+    # Capture before revoke() commits and expires the ORM instance
+    api_key_id = api_key.id
+    api_key_encrypted = api_key.encrypted_key
+
+    revoked = await crud.api_key.revoke(db=db, api_key_id=api_key_id)
 
     # Invalidate cache
     try:
-        decrypted_data = credentials.decrypt(api_key.encrypted_key)
+        decrypted_data = credentials.decrypt(api_key_encrypted)
         plaintext_key = decrypted_data["key"]
         await cache.invalidate_api_key(plaintext_key)
     except Exception:
@@ -236,7 +253,7 @@ async def revoke_api_key(
 
     audit_logger = ctx.logger.with_context(event_type="api_key_revoked")
     audit_logger.info(
-        f"API key revoked: {api_key.id} by {ctx.tracking_email} "
+        f"API key revoked: {api_key_id} by {ctx.tracking_email} "
         f"for org {ctx.organization.id}"
     )
 
